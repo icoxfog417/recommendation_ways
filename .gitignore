@@ -20,5 +20,3 @@ venv
 *.iml
 *.iws
 
-data/*
-!data/.gitkeep

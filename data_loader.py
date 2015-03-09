@@ -1,5 +1,6 @@
 import os
 from collections import namedtuple
+import numpy as np
 
 DEFAULT_FILE_PATH = "./data/users_reviews.txt"
 UserReview = namedtuple("UserReview", ["user_id", "place_id", "rating"])
@@ -28,4 +29,16 @@ def load(file_path="", separator="\t", skip_headers=1, encoding="utf-8"):
         ur = UserReview(items[0], items[1], float(items[2]))
         urs.append(ur)
 
-    return UserReviews(users, places, urs)
+    review_mx = __make_review_matrix(users, places, urs)
+    return UserReviews(users, places, review_mx)
+
+
+def __make_review_matrix(users, places, user_reviews):
+    # make review data matrix
+    review_mx = np.zeros([len(users), len(places)])
+    for ur in user_reviews:
+        u_index = users.index(ur.user_id)
+        p_index = places.index(ur.place_id)
+        review_mx[u_index][p_index] = ur.rating
+
+    return review_mx

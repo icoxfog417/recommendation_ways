@@ -5,11 +5,9 @@ from data_loader import load
 def calc_collaborative_users(user_id, user_reviews):
     user_index = user_reviews.users.index(user_id)
 
-    review_mx = __make_review_matrix(user_reviews)
-
     # calculate corrcoef score
     # http://docs.scipy.org/doc/numpy/reference/generated/numpy.corrcoef.html
-    scores = np.corrcoef(review_mx)
+    scores = np.corrcoef(user_reviews.data)
 
     # extract user's score
     user_scores = scores[:, user_index]
@@ -31,9 +29,10 @@ def filter_by_collaborative_users(user_reviews, collaborators, to_rank=10):
     top_collaborators = collaborators[:to_rank]
 
     # calculate weighted score of rating and weighted average
-    review_mx = __make_review_matrix(user_reviews)
+    review_mx = user_reviews.data
     ratings = review_mx[[c[0] for c in top_collaborators], :]
-    weights = np.array([c[1] for c in top_collaborators])
+    # have to consider the way to calculate weighted average
+    weights = np.abs(np.array([c[1] for c in top_collaborators]))
 
     weighted_rating = np.transpose(ratings) * weights
     weighted_rating = np.sum(weighted_rating, axis=1) / np.sum(weights)  # calculate weighted average
@@ -45,17 +44,6 @@ def filter_by_collaborative_users(user_reviews, collaborators, to_rank=10):
 
     places = sorted(places, key=lambda x: x[1], reverse=True)
     return places
-
-
-def __make_review_matrix(user_reviews):
-    # make review data matrix
-    review_mx = np.zeros([len(user_reviews.users), len(user_reviews.places)])
-    for ur in user_reviews.data:
-        u_index = user_reviews.users.index(ur.user_id)
-        p_index = user_reviews.places.index(ur.place_id)
-        review_mx[u_index][p_index] = ur.rating
-
-    return review_mx
 
 
 def main():
